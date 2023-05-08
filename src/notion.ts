@@ -105,6 +105,14 @@ export const createNotionPage = async (pageDetails?: NotionTicket | null) => {
         Squad: {
           id: 'oQOQ',
           people: assignee
+        },
+        'Working Group(s)': {
+          id: 'ay%7Bk',
+          multi_select: [{
+            id: 'dd3ff22c-02eb-47aa-b2b7-212691929850',
+            name: 'Product',
+            color: 'orange'
+          }]
         }
       },
       children: [
@@ -129,14 +137,5 @@ export const createNotionPage = async (pageDetails?: NotionTicket | null) => {
 };
 
 const test = async () => {
-  const notionTicket = new NotionTicket("author");
-  notionTicket.setSprintName('sprint 36');
-  notionTicket.setAssignee('nour karoui');
-  notionTicket.setOwner('nour karoui');
-  notionTicket.setDescription('some description');
-  notionTicket.setTitle('hello wotld');
-  notionTicket.setSprintId(
-    '7e06887b-3855-470e-9822-cb1a0a330eea'
-  )
-  const result = await createNotionPage(notionTicket);
+  const result = await notion.pages.retrieve({page_id: ''})
 };

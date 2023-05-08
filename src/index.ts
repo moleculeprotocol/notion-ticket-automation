@@ -110,6 +110,9 @@ client.on(
             });
           }
           resetTicketCreation();
+          await api.channels.createMessage(interaction.channel_id, {
+            content: 'Type "TICKET" to start ticket creation process',
+          });
           break;
         default:
           await api.channels.createMessage(interaction.channel_id, {
