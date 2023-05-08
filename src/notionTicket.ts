@@ -1,7 +1,8 @@
 export class NotionTicket {
-    sprintTitle?: string;
+    sprintName?: string;
     sprintId?: string;
     title?: string;
+    owner?: string;
     description?: string;
     assignee?: string;
     createdAt?: Date;
@@ -9,8 +10,8 @@ export class NotionTicket {
     constructor(public author: string) {
         this.createdAt = new Date();
     }
-    setSprintTitle(sprintTitle: string) {
-        this.sprintTitle = sprintTitle;
+    setSprintName(sprintMame: string) {
+        this.sprintName = sprintMame;
     }
     setTitle(title: string) {
         this.title = title;
@@ -23,5 +24,8 @@ export class NotionTicket {
     }
     setSprintId(sprintId: string) {
         this.sprintId = sprintId;
+    }
+    setOwner(owner: string) {
+        this.owner = owner;
     }
 }

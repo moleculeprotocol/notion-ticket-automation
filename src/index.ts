@@ -61,7 +61,7 @@ client.on(
         case 1:
           const sprintExists = await sprintExistsCheck(interaction.content);
           if (sprintExists.exists) {
-            currentTicket?.setSprintTitle(interaction.content);
+            currentTicket?.setSprintName(interaction.content);
             currentTicket?.setSprintId(sprintExists.sprintId!);
             currentTicketCreationStep += 1;
             await api.channels.createMessage(interaction.channel_id, {
@@ -84,25 +84,33 @@ client.on(
           currentTicket?.setDescription(interaction.content);
           currentTicketCreationStep += 1;
           await api.channels.createMessage(interaction.channel_id, {
-            content: "Who to assign the ticket to?",
+            content: "Who is the owner?",
           });
           break;
         case 4:
-          currentTicket?.setAssignee(interaction.content);
+          currentTicket?.setOwner(interaction.content);
           currentTicketCreationStep += 1;
           await api.channels.createMessage(interaction.channel_id, {
-            content: `Do you confirm these information (yes/no)?\n\t sprint name: ${currentTicket?.sprintTitle}\n\t ticket title: ${currentTicket?.title}\n\t ticket description: ${currentTicket?.description}\n\t assignee: ${currentTicket?.assignee}`,
+            content: "Who is the assignee?",
           });
           break;
         case 5:
+          currentTicket?.setAssignee(interaction.content);
+          currentTicketCreationStep += 1;
+          await api.channels.createMessage(interaction.channel_id, {
+            content: `Do you confirm these information (yes/no)?\n\t sprint name: ${currentTicket?.sprintName}\n\t ticket title: ${currentTicket?.title}\n\t ticket description: ${currentTicket?.description}\n\t owner: ${currentTicket?.owner}\n\t assignee: ${currentTicket?.assignee}`,
+          });
+          break;
+        case 6:
           if (interaction.content.toLowerCase() === "yes") {
             console.log("ticket created");
-            const id = await createNotionPage(currentTicket);
+            const url = await createNotionPage(currentTicket);
             await api.channels.createMessage(interaction.channel_id, {
-              content: `new ticket created go check it, https://www.notion.so/sprint-36-${id?.split('-').join('')}`,
+              content: `new ticket created go check it, ${url}`,
             });
           }
           resetTicketCreation();
+          break;
         default:
           await api.channels.createMessage(interaction.channel_id, {
             content: 'Ticket creation in process, type "EXIT" to restart',
