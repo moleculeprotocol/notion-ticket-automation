@@ -1,5 +1,8 @@
 import { Client } from "@notionhq/client";
-import { PartialBlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+  PartialBlockObjectResponse,
+  UserObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 import { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import dotenv from "dotenv";
 import { NotionTicket } from "./notionTicket";
@@ -12,21 +15,23 @@ const notion = new Client({ auth: process.env.MOLECULE_NOTION_TOKEN });
 
 const fetchSprintOptions = async (sprintName: string) => {
   const dbResponse = await notion.databases.retrieve({ database_id: DB_ID });
-
   const sprintOptions =
     //@ts-ignore
     dbResponse.properties["(optional) Sprint"].multi_select.options;
-
   return sprintOptions.filter(
     (option: { id: string; name: string; color: string }) =>
-      sprintName === option.name.toLowerCase() ||
-      option.name.toLowerCase() === "backlog"
+      sprintName.split(" ").slice(0, 2).join(" ").toLowerCase() ===
+        option.name.toLowerCase() || option.name.toLowerCase() === "backlog"
   );
 };
 
-const fetchPeople = async (name: string) => {
-  const response = await notion.users.list({ page_size: 50 });
-  return response.results.filter(
+export const fetchPeople = async (): Promise<UserObjectResponse[]> => {
+  return (await notion.users.list({ page_size: 50 })).results;
+};
+
+const fetchPerson = async (name: string) => {
+  const response = await fetchPeople();
+  return response.filter(
     (person) => person.name?.toLowerCase() === name.toLowerCase()
   );
 };
@@ -48,29 +53,30 @@ const fetchChildrenBlocksById = async (id: string) => {
   return currentSprints;
 };
 
+export const fetchSprintList = async (): Promise<string[]> => {
+  return (
+    await fetchChildrenBlocksById("8059c723-7d0d-4673-b6e9-279666b7f4d0")
+  ).map((sprint) => sprint?.title);
+};
+
 export const sprintExistsCheck = async (
   sprintTitle: string
 ): Promise<{ exists: boolean; sprintId?: string }> => {
-  const sprintsList = await fetchChildrenBlocksById(
-    "8059c723-7d0d-4673-b6e9-279666b7f4d0"
+  const sprintsList = await fetchSprintList();
+  const sprintDetails = sprintsList.filter((title) =>
+    title?.includes(sprintTitle.toLowerCase())
   );
-  const sprintDetails = sprintsList.filter((sprint) =>
-    sprint?.title.includes(sprintTitle)
-  );
-  const sprint = await notion.pages.retrieve({
-    page_id: "e80a1504-0578-4543-933c-94c8a48b78a2",
-  });
-  return sprintDetails.length
-    ? { exists: true, sprintId: sprintDetails[0]?.id }
-    : { exists: false };
+  return sprintDetails.length ? { exists: true } : { exists: false };
 };
 
 export const createNotionPage = async (pageDetails?: NotionTicket | null) => {
   if (pageDetails) {
-    const [owner, assignee, currentSprint] = await Promise.all([fetchPeople(pageDetails.owner!), fetchPeople(pageDetails.assignee!), fetchSprintOptions(
-      pageDetails.sprintName!
-    )]);
-    
+    const [owner, assignee, currentSprint] = await Promise.all([
+      fetchPerson(pageDetails.owner!),
+      fetchPerson(pageDetails.assignee!),
+      fetchSprintOptions(pageDetails.sprintName!),
+    ]);
+
     const response = await notion.pages.create({
       parent: {
         type: "database_id",
@@ -95,25 +101,27 @@ export const createNotionPage = async (pageDetails?: NotionTicket | null) => {
           },
         },
         "(optional) Sprint": {
-          id: pageDetails.sprintId,
+          id: "7e06887b-3855-470e-9822-cb1a0a330eea",
           multi_select: currentSprint,
         },
-        "Owner": {
-          id: 'ZR%5Bk',
-          people: owner
+        Owner: {
+          id: "ZR%5Bk",
+          people: owner,
         },
         Squad: {
-          id: 'oQOQ',
-          people: assignee
+          id: "oQOQ",
+          people: assignee,
         },
-        'Working Group(s)': {
-          id: 'ay%7Bk',
-          multi_select: [{
-            id: 'dd3ff22c-02eb-47aa-b2b7-212691929850',
-            name: 'Product',
-            color: 'orange'
-          }]
-        }
+        "Working Group(s)": {
+          id: "ay%7Bk",
+          multi_select: [
+            {
+              id: "dd3ff22c-02eb-47aa-b2b7-212691929850",
+              name: "Product",
+              color: "orange",
+            },
+          ],
+        },
       },
       children: [
         {
@@ -137,5 +145,7 @@ export const createNotionPage = async (pageDetails?: NotionTicket | null) => {
 };
 
 const test = async () => {
-  const result = await notion.pages.retrieve({page_id: ''})
+  // const result = await notion.pages.retrieve({page_id: '8d5f20cb-54fb-4b20-a3cc-12df0a652af2'})
+  const result = await fetchPeople();
+  console.log(result);
 };
