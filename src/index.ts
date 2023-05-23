@@ -5,7 +5,8 @@ import { client, config, gateway } from "./config";
 import cron from "node-cron";
 
 // cron job to update sprints and people
-cron.schedule("0 * * * *", () => {
+cron.schedule("30 * * * *", () => {
+  console.log("updating people and sprints");
   config.initPeopleAndSprints();
 });
 // Listen for events triggered after selecting an item from a menu
@@ -114,7 +115,7 @@ client.on(
                       {
                         type: 3,
                         custom_id: "class_select_1",
-                        options: config.currentSprints.map((title) => {
+                        options: config.currentSprints.slice(-25).map((title) => {
                           return {
                             label: title,
                             value: title,
