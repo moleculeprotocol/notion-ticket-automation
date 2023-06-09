@@ -10,12 +10,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^8.41.0",
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@discordjs/core": "^0.5.2",
     "@notionhq/client": "^2.2.4",
     "@types/node-cron": "^3.0.7",
+    "discord.js": "^14.11.0",
     "dotenv": "^16.0.3",
     "node-cron": "^3.0.2"
   }
