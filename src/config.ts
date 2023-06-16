@@ -10,13 +10,6 @@ dotenv.config();
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN as string;
 const DISCORD_CLIENT_ID = process.env.CLIENT_ID as string;
 const DISCORD_SERVER_ID = process.env.SERVER_ID as string;
-export const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const commands = [
-  {
-    name: "notion-ticket",
-    description: "create a new notion ticket",
-  },
-];
 export class Config {
   public currentSprints: string[] = [];
   public currentTicketCreationStep = 0;
@@ -48,8 +41,22 @@ export class Config {
     this.currentTicketCreationStep = 0;
   }
 }
-
 export const config = new Config();
+
+export const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
+const commands = [
+  {
+    name: "notion-ticket",
+    description: "create a new notion ticket",
+  },
+];
+
 const rest = new REST().setToken(DISCORD_TOKEN);
 // Prepare and deploy the new command to the discord server
 (async () => {

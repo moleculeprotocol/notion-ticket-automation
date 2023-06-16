@@ -1,12 +1,12 @@
-import { Events, StringSelectMenuInteraction } from "discord.js";
+import { Events } from "discord.js";
 import dotenv from "dotenv";
 import { client, config } from "./config";
 import { peopleOptions } from "./people";
+import { createNotionPage } from "./notion";
 
 dotenv.config();
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  console.log('here')
   if (interaction.isStringSelectMenu()) {
     switch (interaction.customId.toLowerCase()) {
       case "sprint":
@@ -80,17 +80,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.on(Events.MessageCreate, async (interaction) => {
-  console.log("here");
   if (
     interaction.author.username === config.currentTicketAuthor &&
     interaction.channelId === config.currentChannel
   ) {
-    if (config.currentTicket?.title) {
+    if (!config.currentTicket?.title) {
       config.currentTicket?.setTitle(interaction.content);
       await interaction.reply({
         content: "What is the ticket description?",
       });
-    } else {
+    } else if (!config.currentTicket?.description) {
       config.currentTicket?.setDescription(interaction.content);
       await interaction.reply({
         content: "Who is the owner?",
@@ -110,6 +109,15 @@ client.on(Events.MessageCreate, async (interaction) => {
           },
         ],
       });
+    } else {
+      if (interaction.content.toLowerCase() === "yes") {
+        console.log("ticket created");
+        const url = await createNotionPage(config.currentTicket);
+        await interaction.reply({
+          content: `new ticket created go check it, ${url}`,
+        });
+      }
+      config.resetTicketCreation();
     }
   }
 });
